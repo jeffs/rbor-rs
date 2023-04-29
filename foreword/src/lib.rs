@@ -6,6 +6,7 @@ use std::rc::Rc;
 /// <https://gist.github.com/rust-play/f1db7595a2c1f4a5b2f8cfa5a3bb017d>.  If
 /// you know who the original author was, please open an issue so they can be
 /// credited!
+#[allow(clippy::all)]
 fn y<A, O, F>(f: Rc<dyn Fn(Rc<dyn Fn(A) -> O>) -> F>) -> impl Fn(A) -> O
 where
     F: Fn(A) -> O,
