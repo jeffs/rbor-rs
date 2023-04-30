@@ -23,69 +23,6 @@ struct TowerSet {
 
 const TOWER_LABELS: [&'static str; 3] = ["A", "B", "C"];
 
-impl TowerSet {
-    fn towers(&self) -> impl Iterator<Item = &Tower> {
-        [&self.a, &self.b, &self.c].into_iter()
-    }
-
-    fn disks(&self) -> impl Iterator<Item = &Disk> {
-        self.towers().flat_map(|tower| tower.disks.iter())
-    }
-}
-
-impl fmt::Display for TowerSet {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        //  print pole tops
-        //  for each row
-        //      print a
-        //      print b
-        //      print c
-        //      println
-        //  print labels
-
-        let pole = "||";
-        let max_radius = self
-            .disks()
-            .map(|disk| disk.radius)
-            .max()
-            .unwrap_or_default();
-
-        // Print the tops of the poles.
-        for _ in self.towers() {
-            write!(f, " {:^2$}||{:^2$}", "", "", max_radius)?;
-        }
-        writeln!(f)?;
-
-        // Print the disks.
-        let disk_count = self.disks().count();
-        for depth in 0..disk_count {
-            for tower in self.towers() {
-                let index = disk_count - depth - 1;
-                if let Some(disk) = tower.disks.get(index) {
-                    let radius = disk.radius;
-                    write!(
-                        f,
-                        " {blank:gap$}{fill}_{radius}{fill}{blank:gap$}",
-                        blank = "",
-                        fill = "@".repeat(radius),
-                        gap = max_radius - radius,
-                    )?;
-                } else {
-                    write!(f, " {:^2$}||{:^2$}", "", "", max_radius)?;
-                }
-            }
-            writeln!(f)?;
-        }
-
-        // Print a label for each tower.
-        for label in TOWER_LABELS {
-            write!(f, " {:^2$} {label}{:^2$}", "", "", max_radius)?;
-        }
-
-        Ok(())
-    }
-}
-
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum TowerSelector {
     A,
@@ -121,6 +58,91 @@ impl TowerSelectorSet {
     }
 }
 
+impl TowerSet {
+    fn towers(&self) -> impl Iterator<Item = &Tower> {
+        [&self.a, &self.b, &self.c].into_iter()
+    }
+
+    fn disks(&self) -> impl Iterator<Item = &Disk> {
+        self.towers().flat_map(|tower| tower.disks.iter())
+    }
+}
+
+/// Helper for implementing the Display trait.
+struct TowerSetDisplay<'a> {
+    towers: &'a TowerSet,
+    radius: usize,
+}
+
+impl TowerSetDisplay<'_> {
+    fn new(towers: &TowerSet) -> TowerSetDisplay {
+        TowerSetDisplay {
+            towers,
+            radius: towers
+                .disks()
+                .map(|disk| disk.radius)
+                .max()
+                .unwrap_or_default(),
+        }
+    }
+
+    fn write_pole(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, " {:^2$}||{:^2$}", "", "", self.radius)
+    }
+
+    fn print_pole_tops(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for _ in self.towers.towers() {
+            self.write_pole(f)?;
+        }
+        writeln!(f)
+    }
+
+    fn print_disks(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let disk_count = self.towers.disks().count();
+        for depth in 0..disk_count {
+            for tower in self.towers.towers() {
+                if let Some(disk) = tower.disks.get(disk_count - depth - 1) {
+                    // There's a disk at this depth on this tower.  Print it,
+                    // surrounded by space.
+                    let radius = disk.radius;
+                    write!(
+                        f,
+                        " {blank:gap$}{fill}_{radius}{fill}{blank:gap$}",
+                        blank = "",
+                        fill = "@".repeat(radius),
+                        gap = self.radius - radius,
+                    )?;
+                } else {
+                    // There's no disk at this depth on this tower.  Print the
+                    // pole, surrounded by space.
+                    self.write_pole(f)?;
+                }
+            }
+            writeln!(f)?;
+        }
+        Ok(())
+    }
+
+    fn print_labels(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for label in TOWER_LABELS {
+            write!(f, " {:^2$} {label}{:^2$}", "", "", self.radius)?;
+        }
+        Ok(())
+    }
+
+    fn print(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.print_pole_tops(f)?;
+        self.print_disks(f)?;
+        self.print_labels(f)
+    }
+}
+
+impl fmt::Display for TowerSet {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        TowerSetDisplay::new(self).print(f)
+    }
+}
+
 /// Whereas the book keeps the towers in a global variable, we pass them around
 /// as a function argument.  We also group the tower selectors into a single
 /// struct, rather than passing them all as separate function arguments as the
@@ -130,6 +152,7 @@ fn solve(towers: TowerSet, height: usize, selectors: TowerSelectorSet) {
     if height == 0 {
         return; // BASE CASE
     }
+    //let Some(disk) = towers.
     println!("\n{towers}");
 }
 
