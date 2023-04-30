@@ -9,7 +9,7 @@ struct Disk {
     radius: usize,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Tower {
     disks: Vec<Disk>, // a stack, ordered from bottom to top
 }
@@ -94,14 +94,20 @@ enum TowerSelector {
     C,
 }
 
-/// Whereas the book keeps the towers in a global variable, we pass them around
-/// as a function argument.
-fn solve(
-    towers: TowerSet,
-    height: usize,         // How many disks to move.
+struct TowerSelectorSet {
     source: TowerSelector, // What the book calls `startTower`.
     target: TowerSelector, // What the book calls `endTower`.
     buffer: TowerSelector, // What the book calls `tempTower`.
+}
+
+/// Whereas the book keeps the towers in a global variable, we pass them around
+/// as a function argument.  We also group the tower selectors into a single
+/// struct, rather than passing them all as separate function arguments as the
+/// book does.  These are purely stylistic choices.
+fn solve(
+    towers: TowerSet,
+    height: usize, // How many disks to move.
+    selectors: TowerSelectorSet,
 ) {
     println!("\n{towers}");
 }
@@ -113,14 +119,16 @@ fn main() {
         .collect();
     let towers = TowerSet {
         a: Tower { disks },
-        b: Tower::default(),
-        c: Tower::default(),
+        b: Tower { disks: vec![] },
+        c: Tower { disks: vec![] },
     };
     let steps = solve(
         towers,
         TOTAL_DISKS,
-        TowerSelector::A,
-        TowerSelector::B,
-        TowerSelector::C,
+        TowerSelectorSet {
+            source: TowerSelector::A,
+            target: TowerSelector::B,
+            buffer: TowerSelector::C,
+        },
     );
 }
