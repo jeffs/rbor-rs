@@ -15,11 +15,16 @@ struct Tower {
     disks: Vec<Disk>, // a stack, ordered from bottom to top
 }
 
-#[derive(Debug)]
-struct TowerSet {
-    a: Tower,
-    b: Tower,
-    c: Tower,
+impl Tower {
+    fn must_pop(&mut self) -> Disk {
+        self.disks
+            .pop()
+            .expect("A tower being popped from should have at least one disk")
+    }
+
+    fn push(&mut self, disk: Disk) {
+        self.disks.push(disk);
+    }
 }
 
 const TOWER_LABELS: [&'static str; 3] = ["A", "B", "C"];
@@ -56,6 +61,20 @@ impl TowerSelectorSet {
             target,
             buffer,
         }
+    }
+}
+
+#[derive(Debug)]
+struct TowerSet {
+    a: Tower,
+    b: Tower,
+    c: Tower,
+}
+
+impl TowerSet {
+    fn move_disk(&mut self, source: TowerSelector, target: TowerSelector) {
+        let disk = self[source].must_pop();
+        self[target].push(disk);
     }
 }
 
@@ -171,12 +190,44 @@ impl IndexMut<TowerSelector> for TowerSet {
 /// struct, rather than passing them all as separate function arguments as the
 /// book does.  What the book calls `numberOfDisks`, we call `height`.  These
 /// are purely stylistic choices.
-fn solve(towers: TowerSet, height: usize, selectors: TowerSelectorSet) {
+fn solve(mut towers: TowerSet, height: usize, selectors: TowerSelectorSet) -> TowerSet {
     if height == 0 {
-        return; // BASE CASE
+        // BASE CASE: No disks to move.
+        return towers;
     }
-    //let Some(disk) = towers.
-    println!("\n{towers}");
+
+    let TowerSelectorSet {
+        source,
+        target,
+        buffer,
+    } = selectors;
+
+    if height == 1 {
+        // BASE CASE: Only one disk to move.
+        towers.move_disk(source, target);
+        println!("\n{towers}");
+        return towers;
+    }
+
+    let mut towers = solve(
+        towers,
+        height - 1,
+        TowerSelectorSet {
+            source,
+            target: buffer,
+            buffer: target,
+        },
+    );
+    towers.move_disk(source, target);
+    solve(
+        towers,
+        height - 1,
+        TowerSelectorSet {
+            source: buffer,
+            target,
+            buffer: source,
+        },
+    )
 }
 
 fn main() {
