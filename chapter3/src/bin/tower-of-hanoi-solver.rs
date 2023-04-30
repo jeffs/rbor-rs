@@ -1,6 +1,7 @@
 #![allow(dead_code, unused_variables)]
 
 use std::fmt;
+use std::ops::{Index, IndexMut};
 
 const TOTAL_DISKS: usize = 6;
 
@@ -140,6 +141,28 @@ impl TowerSetDisplay<'_> {
 impl fmt::Display for TowerSet {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         TowerSetDisplay::new(self).print(f)
+    }
+}
+
+impl Index<TowerSelector> for TowerSet {
+    type Output = Tower;
+
+    fn index(&self, index: TowerSelector) -> &Self::Output {
+        match index {
+            TowerSelector::A => &self.a,
+            TowerSelector::B => &self.b,
+            TowerSelector::C => &self.c,
+        }
+    }
+}
+
+impl IndexMut<TowerSelector> for TowerSet {
+    fn index_mut(&mut self, index: TowerSelector) -> &mut Self::Output {
+        match index {
+            TowerSelector::A => &mut self.a,
+            TowerSelector::B => &mut self.b,
+            TowerSelector::C => &mut self.c,
+        }
     }
 }
 
