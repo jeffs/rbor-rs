@@ -1,3 +1,4 @@
+#[allow(unconditional_recursion)]
 fn shortest() {
     shortest();
 }

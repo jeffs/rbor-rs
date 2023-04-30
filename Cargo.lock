@@ -15,5 +15,9 @@ name = "part2"
 version = "0.1.0"
 
 [[package]]
+name = "part3"
+version = "0.1.0"
+
+[[package]]
 name = "rbor-rs"
 version = "0.1.0"

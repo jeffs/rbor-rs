@@ -1,3 +1,7 @@
+// Note that returning an in-band sentinel value like -1 is not idiomatic Rust.
+// Rust strings provide a
+// [find](https://doc.rust-lang.org/std/primitive.str.html#method.find) method
+// returning an `Option<usize>`.
 fn find_substring_iterative(needle: &str, haystack: &str) -> isize {
     for i in 0..(haystack.len() - needle.len()) {
         if &haystack[i..(i + needle.len())] == needle {
@@ -18,6 +22,23 @@ fn find_substring_recursive(needle: &str, haystack: &str) -> isize {
         }
     }
     imp(needle, haystack, 0)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_find_substring_iterative() {
+        assert_eq!(find_substring_iterative("bat", "My cat Zophie"), -1);
+        assert_eq!(find_substring_iterative("cat", "My cat Zophie"), 3);
+    }
+
+    #[test]
+    fn test_find_substring_recursive() {
+        assert_eq!(find_substring_recursive("bat", "My cat Zophie"), -1);
+        assert_eq!(find_substring_recursive("cat", "My cat Zophie"), 3);
+    }
 }
 
 fn main() {
