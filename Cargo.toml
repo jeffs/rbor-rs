@@ -3,7 +3,7 @@
 members = [
     "foreword",
     "introduction",
-    "part1",
-    "part2",
-    "part3",
+    "chapter1",
+    "chapter2",
+    "chapter3",
 ]
