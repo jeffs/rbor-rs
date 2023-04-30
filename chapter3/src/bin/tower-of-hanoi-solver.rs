@@ -21,11 +21,9 @@ struct TowerSet {
     c: Tower,
 }
 
-impl TowerSet {
-    fn labels() -> impl Iterator<Item = &'static str> {
-        ["A", "B", "C"].into_iter()
-    }
+const TOWER_LABELS: [&'static str; 3] = ["A", "B", "C"];
 
+impl TowerSet {
     fn towers(&self) -> impl Iterator<Item = &Tower> {
         [&self.a, &self.b, &self.c].into_iter()
     }
@@ -80,7 +78,7 @@ impl fmt::Display for TowerSet {
         }
 
         // Print a label for each tower.
-        for label in Self::labels() {
+        for label in TOWER_LABELS {
             write!(f, " {:^2$} {label}{:^2$}", "", "", max_radius)?;
         }
 
@@ -88,10 +86,17 @@ impl fmt::Display for TowerSet {
     }
 }
 
+#[derive(Clone, Copy, Eq, PartialEq)]
 enum TowerSelector {
     A,
     B,
     C,
+}
+
+impl fmt::Display for TowerSelector {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", TOWER_LABELS[*self as usize])
+    }
 }
 
 struct TowerSelectorSet {
@@ -100,15 +105,31 @@ struct TowerSelectorSet {
     buffer: TowerSelector, // What the book calls `tempTower`.
 }
 
+impl TowerSelectorSet {
+    fn new(
+        source: TowerSelector,
+        target: TowerSelector,
+        buffer: TowerSelector,
+    ) -> TowerSelectorSet {
+        (source == target || source == buffer || target == buffer)
+            .then(|| panic!("tower selectors should be unique: {source}, {target}, {buffer}"));
+        TowerSelectorSet {
+            source,
+            target,
+            buffer,
+        }
+    }
+}
+
 /// Whereas the book keeps the towers in a global variable, we pass them around
 /// as a function argument.  We also group the tower selectors into a single
 /// struct, rather than passing them all as separate function arguments as the
-/// book does.  These are purely stylistic choices.
-fn solve(
-    towers: TowerSet,
-    height: usize, // How many disks to move.
-    selectors: TowerSelectorSet,
-) {
+/// book does.  What the book calls `numberOfDisks`, we call `height`.  These
+/// are purely stylistic choices.
+fn solve(towers: TowerSet, height: usize, selectors: TowerSelectorSet) {
+    if height == 0 {
+        return; // BASE CASE
+    }
     println!("\n{towers}");
 }
 
@@ -122,13 +143,9 @@ fn main() {
         b: Tower { disks: vec![] },
         c: Tower { disks: vec![] },
     };
-    let steps = solve(
+    solve(
         towers,
         TOTAL_DISKS,
-        TowerSelectorSet {
-            source: TowerSelector::A,
-            target: TowerSelector::B,
-            buffer: TowerSelector::C,
-        },
+        TowerSelectorSet::new(TowerSelector::A, TowerSelector::B, TowerSelector::C),
     );
 }
