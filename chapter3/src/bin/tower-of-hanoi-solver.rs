@@ -1,16 +1,12 @@
-#![allow(dead_code, unused_variables)]
-
 use std::fmt;
 use std::ops::{Index, IndexMut};
 
-const TOTAL_DISKS: usize = 6;
-
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 struct Disk {
     radius: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Eq, PartialEq)]
 struct Tower {
     disks: Vec<Disk>, // a stack, ordered from bottom to top
 }
@@ -24,6 +20,14 @@ impl Tower {
 
     fn push(&mut self, disk: Disk) {
         self.disks.push(disk);
+    }
+}
+
+impl Tower {
+    fn with_disks(n: usize) -> Tower {
+        Tower {
+            disks: (1..=n).rev().map(|radius| Disk { radius }).collect(),
+        }
     }
 }
 
@@ -49,7 +53,8 @@ struct TowerSelectorSet {
 }
 
 impl TowerSelectorSet {
-    fn new(
+    #[allow(dead_code)]
+    fn from_parts(
         source: TowerSelector,
         target: TowerSelector,
         buffer: TowerSelector,
@@ -62,9 +67,17 @@ impl TowerSelectorSet {
             buffer,
         }
     }
+
+    fn new() -> TowerSelectorSet {
+        TowerSelectorSet {
+            source: TowerSelector::A,
+            target: TowerSelector::B,
+            buffer: TowerSelector::C,
+        }
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 struct TowerSet {
     a: Tower,
     b: Tower,
@@ -72,6 +85,14 @@ struct TowerSet {
 }
 
 impl TowerSet {
+    fn with_disks(n: usize) -> TowerSet {
+        TowerSet {
+            a: Tower::with_disks(n),
+            b: Tower::with_disks(0),
+            c: Tower::with_disks(0),
+        }
+    }
+
     fn move_disk(&mut self, source: TowerSelector, target: TowerSelector) {
         let disk = self[source].must_pop();
         self[target].push(disk);
@@ -230,19 +251,29 @@ fn solve(mut towers: TowerSet, height: usize, selectors: TowerSelectorSet) -> To
     )
 }
 
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_solve() {
+        for n in 0..10 {
+            let want = TowerSet {
+                a: Tower::default(),
+                b: Tower::with_disks(n),
+                c: Tower::default(),
+            };
+            let got = solve(TowerSet::with_disks(n), n, TowerSelectorSet::new());
+            assert_eq!(got, want);
+        }
+    }
+}
+
 fn main() {
-    let disks = (1..=TOTAL_DISKS)
-        .rev()
-        .map(|radius| Disk { radius })
-        .collect();
-    let towers = TowerSet {
-        a: Tower { disks },
-        b: Tower { disks: vec![] },
-        c: Tower { disks: vec![] },
-    };
+    const TOTAL_DISKS: usize = 6;
     solve(
-        towers,
+        TowerSet::with_disks(TOTAL_DISKS),
         TOTAL_DISKS,
-        TowerSelectorSet::new(TowerSelector::A, TowerSelector::B, TowerSelector::C),
+        TowerSelectorSet::new(),
     );
 }
