@@ -31,7 +31,7 @@ impl Tower {
     }
 }
 
-const TOWER_LABELS: [&'static str; 3] = ["A", "B", "C"];
+const TOWER_LABELS: [&str; 3] = ["A", "B", "C"];
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum TowerSelector {
@@ -53,7 +53,6 @@ struct TowerSelectorSet {
 }
 
 impl TowerSelectorSet {
-    #[allow(dead_code)]
     fn from_parts(
         source: TowerSelector,
         target: TowerSelector,
@@ -211,46 +210,29 @@ impl IndexMut<TowerSelector> for TowerSet {
 /// passing them all as separate function arguments as the book does.  What the
 /// book calls `numberOfDisks`, we call `height`.  These are purely stylistic
 /// choices.
-fn solve(mut towers: TowerSet, height: usize, selectors: TowerSelectorSet) -> TowerSet {
+fn solve(towers: TowerSet, height: usize, selectors: TowerSelectorSet) -> TowerSet {
+    if height == 0 {
+        // BASE CASE: No disks to move.
+        println!("\n{towers}");
+        return towers;
+    }
+    // RECURSIVE CASE
     let TowerSelectorSet {
         source,
         target,
         buffer,
     } = selectors;
-    match height {
-        0 => {
-            // BASE CASE: No disks to move.
-            towers
-        }
-        1 => {
-            // BASE CASE: Only one disk to move.
-            towers.move_disk(source, target);
-            println!("\n{towers}");
-            towers
-        }
-        _ => {
-            // RECURSIVE CASE
-            let mut towers = solve(
-                towers,
-                height - 1,
-                TowerSelectorSet {
-                    source,
-                    target: buffer,
-                    buffer: target,
-                },
-            );
-            towers.move_disk(source, target);
-            solve(
-                towers,
-                height - 1,
-                TowerSelectorSet {
-                    source: buffer,
-                    target,
-                    buffer: source,
-                },
-            )
-        }
-    }
+    let mut towers = solve(
+        towers,
+        height - 1,
+        TowerSelectorSet::from_parts(source, buffer, target),
+    );
+    towers.move_disk(source, target);
+    solve(
+        towers,
+        height - 1,
+        TowerSelectorSet::from_parts(buffer, target, source),
+    )
 }
 
 #[cfg(test)]
