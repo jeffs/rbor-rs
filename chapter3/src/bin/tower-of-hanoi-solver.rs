@@ -22,7 +22,7 @@ struct TowerSet {
 }
 
 impl TowerSet {
-    fn labels() -> impl Iterator<Item=&'static str> {
+    fn labels() -> impl Iterator<Item = &'static str> {
         ["A", "B", "C"].into_iter()
     }
 
@@ -46,21 +46,42 @@ impl fmt::Display for TowerSet {
         //  print labels
 
         let pole = "||";
-        let radius = self
+        let max_radius = self
             .disks()
             .map(|disk| disk.radius)
             .max()
             .unwrap_or_default();
 
-
         // Print the tops of the poles.
         for _ in self.towers() {
-            write!(f, " {:^2$}||{:^2$}", "", "", radius)?;
+            write!(f, " {:^2$}||{:^2$}", "", "", max_radius)?;
         }
         writeln!(f)?;
 
+        // Print the disks.
+        let disk_count = self.disks().count();
+        for depth in 0..disk_count {
+            for tower in self.towers() {
+                let index = disk_count - depth - 1;
+                if let Some(disk) = tower.disks.get(index) {
+                    let radius = disk.radius;
+                    write!(
+                        f,
+                        " {blank:gap$}{fill}_{radius}{fill}{blank:gap$}",
+                        blank = "",
+                        fill = "@".repeat(radius),
+                        gap = max_radius - radius,
+                    )?;
+                } else {
+                    write!(f, " {:^2$}||{:^2$}", "", "", max_radius)?;
+                }
+            }
+            writeln!(f)?;
+        }
+
+        // Print a label for each tower.
         for label in Self::labels() {
-            write!(f, " {:^2$} {label}{:^2$}", "", "", radius)?;
+            write!(f, " {:^2$} {label}{:^2$}", "", "", max_radius)?;
         }
 
         Ok(())
@@ -82,8 +103,7 @@ fn solve(
     target: TowerSelector, // What the book calls `endTower`.
     buffer: TowerSelector, // What the book calls `tempTower`.
 ) {
-    println!("TOWERS");
-    println!("{towers}");
+    println!("\n{towers}");
 }
 
 fn main() {
