@@ -324,9 +324,7 @@ mod test {
 fn main() -> Result<(), Box<dyn Error>> {
     const TOTAL_DISKS: usize = 6;
     let towers = TowerSet::with_disks(TOTAL_DISKS);
-    if std::env::args()
-        .any(|arg| &arg == "-i" || &arg == "--interactive")
-    {
+    if std::env::args().any(|arg| &arg == "-i" || &arg == "--interactive") {
         interact(towers)?;
     } else {
         solve(towers, TOTAL_DISKS, TowerSelectorSet::new());

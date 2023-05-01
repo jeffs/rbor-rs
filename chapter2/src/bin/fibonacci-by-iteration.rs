@@ -14,7 +14,10 @@ mod test {
 
     #[test]
     fn test_fibonacci() {
-        for (n, want) in [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55].into_iter().enumerate() {
+        for (n, want) in [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55]
+            .into_iter()
+            .enumerate()
+        {
             let got = fibonacci(n);
             eprintln!("n = {n}, got = {got}");
             assert_eq!(got, want);
