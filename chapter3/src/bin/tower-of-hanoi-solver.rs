@@ -277,17 +277,17 @@ fn solve(towers: TowerSet, height: usize, selectors: TowerSelectorSet) -> TowerS
     )
 }
 
-fn interact(mut towers: TowerSet) -> Result<(), Box<dyn Error>> {
+fn interact(mut towers: TowerSet) -> Result<TowerSet, Box<dyn Error>> {
     let mut lines = io::stdin().lines();
     loop {
         println!("\n{towers}");
         println!("\nEnter letter of start tower and the end tower. (A, B, C) or Q to quit.");
         let Some(line) = lines.next() else {
-            return Ok(());  // End of input.
+            return Ok(towers);  // End of input.
         };
         let line = line?.to_uppercase();
         if line.starts_with("Q") {
-            return Ok(());
+            return Ok(towers);
         }
         if line.len() < 2 {
             // The book crashes on empty lines, and silently ignores bad
@@ -323,9 +323,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .find(|arg| arg == "-i" || arg == "--interactive")
         .is_some()
     {
-        interact(towers)
+        interact(towers)?;
     } else {
         solve(towers, TOTAL_DISKS, TowerSelectorSet::new());
-        Ok(())
     }
+    Ok(())
 }
