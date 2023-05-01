@@ -140,13 +140,18 @@ impl TowerSet {
     }
 }
 
-impl TowerSet {
-    fn towers(&self) -> impl Iterator<Item = &Tower> {
+impl<'a> IntoIterator for &'a TowerSet {
+    type Item = &'a Tower;
+    type IntoIter = std::array::IntoIter<&'a Tower, 3>;
+
+    fn into_iter(self) -> Self::IntoIter {
         [&self.a, &self.b, &self.c].into_iter()
     }
+}
 
+impl TowerSet {
     fn disks(&self) -> impl Iterator<Item = &Disk> {
-        self.towers().flat_map(|tower| tower.disks.iter())
+        self.into_iter().flat_map(|tower| tower.disks.iter())
     }
 }
 
@@ -173,7 +178,7 @@ impl TowerSetDisplay<'_> {
     }
 
     fn print_pole_tops(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for _ in self.towers.towers() {
+        for _ in self.towers {
             self.write_pole(f)?;
         }
         writeln!(f)
@@ -182,7 +187,7 @@ impl TowerSetDisplay<'_> {
     fn print_disks(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let disk_count = self.towers.disks().count();
         for depth in 0..disk_count {
-            for tower in self.towers.towers() {
+            for tower in self.towers {
                 if let Some(disk) = tower.disks.get(disk_count - depth - 1) {
                     // There's a disk at this depth on this tower.  Print it,
                     // surrounded by space.
