@@ -1,21 +1,23 @@
-/// While this Tower of Hanoi solver here is modeled on the one from Chapter 3
-/// of The Recursive Book of Recursion, it does not mimic the structure of the
-/// book's sample code as closely as earlier exercises in this repository.
-/// While a shorter version of this solver is certainly possible--for example,
-/// by using numbers and stacks to represent disks and towers directly, rather
-/// than wrapping them in bespoke Disk and Tower types--such an implementation
-/// would not be idiomatic Rust.
-///
-/// Tiny programs like those featured earlier in the book are so simple that
-/// good structure and conventions are not critical to their clarity or
-/// maintainability.  The Tower of Hanoi exercise, however, seems complex
-/// enough to merit a slightly more disciplined approach, which anyway is a
-/// better fit for Rust.  Even in Python and JavaScript, the reader may enjoy
-/// replacing the book's use of global variables with function arguments and
-/// returns values, and encapsulating the book's raw numbers, strings, and
-/// arrays with object-oriented classes akin to the Rust types defined here.
-use std::fmt;
+//! While this Tower of Hanoi solver here is modeled on the one from Chapter 3
+//! of The Recursive Book of Recursion, it does not mimic the structure of the
+//! book's sample code as closely as earlier exercises in this repository.
+//! While a shorter version of this solver is certainly possible--for example,
+//! by using numbers and stacks to represent disks and towers directly, rather
+//! than wrapping them in bespoke Disk and Tower types--such an implementation
+//! would not be idiomatic Rust.
+//!
+//! Tiny programs like those featured earlier in the book are so simple that
+//! good structure and conventions are not critical to their clarity or
+//! maintainability.  The Tower of Hanoi exercise, however, seems complex
+//! enough to merit a slightly more disciplined approach, which anyway is a
+//! better fit for Rust.  Even in Python and JavaScript, the reader may enjoy
+//! replacing the book's use of global variables with function arguments and
+//! returns values, and encapsulating the book's raw numbers, strings, and
+//! arrays with object-oriented classes akin to the Rust types defined here.
+use std::error::Error;
 use std::ops::{Index, IndexMut};
+use std::str::FromStr;
+use std::{fmt, io};
 
 #[derive(Debug, Eq, PartialEq)]
 struct Disk {
@@ -49,6 +51,17 @@ impl Tower {
 
 const TOWER_LABELS: [&str; 3] = ["A", "B", "C"];
 
+#[derive(Debug)]
+struct ParseTowerSelectorError(String);
+
+impl fmt::Display for ParseTowerSelectorError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}: bad tower selector", self.0)
+    }
+}
+
+impl Error for ParseTowerSelectorError {}
+
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum TowerSelector {
     A,
@@ -59,6 +72,19 @@ enum TowerSelector {
 impl fmt::Display for TowerSelector {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", TOWER_LABELS[*self as usize])
+    }
+}
+
+impl FromStr for TowerSelector {
+    type Err = ParseTowerSelectorError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "A" => Ok(TowerSelector::A),
+            "B" => Ok(TowerSelector::B),
+            "C" => Ok(TowerSelector::C),
+            _ => Err(ParseTowerSelectorError(s.to_string())),
+        }
     }
 }
 
@@ -251,6 +277,27 @@ fn solve(towers: TowerSet, height: usize, selectors: TowerSelectorSet) -> TowerS
     )
 }
 
+fn interact(mut towers: TowerSet) -> Result<(), Box<dyn Error>> {
+    let mut lines = io::stdin().lines();
+    loop {
+        println!("\n{towers}");
+        println!("\nEnter letter of start tower and the end tower. (A, B, C) or Q to quit.");
+        let Some(line) = lines.next() else {
+            return Ok(());  // End of input.
+        };
+        let line = line?.to_uppercase();
+        if line.starts_with("Q") {
+            return Ok(());
+        }
+        if line.len() < 2 {
+            // The book crashes on empty lines, and silently ignores bad
+            // commands.  We fix the crash, but otherwise behave likewise.
+            continue;
+        }
+        towers.move_disk(line[..1].parse()?, line[1..2].parse()?);
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -269,11 +316,16 @@ mod test {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     const TOTAL_DISKS: usize = 6;
-    solve(
-        TowerSet::with_disks(TOTAL_DISKS),
-        TOTAL_DISKS,
-        TowerSelectorSet::new(),
-    );
+    let towers = TowerSet::with_disks(TOTAL_DISKS);
+    if std::env::args()
+        .find(|arg| arg == "-i" || arg == "--interactive")
+        .is_some()
+    {
+        interact(towers)
+    } else {
+        solve(towers, TOTAL_DISKS, TowerSelectorSet::new());
+        Ok(())
+    }
 }
