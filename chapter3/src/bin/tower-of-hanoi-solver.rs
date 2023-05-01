@@ -30,10 +30,8 @@ struct Tower {
 }
 
 impl Tower {
-    fn must_pop(&mut self) -> Disk {
-        self.disks
-            .pop()
-            .expect("A tower being popped from should have at least one disk")
+    fn pop(&mut self) -> Option<Disk> {
+        self.disks.pop()
     }
 
     fn push(&mut self, disk: Disk) {
@@ -62,7 +60,7 @@ impl fmt::Display for ParseTowerSelectorError {
 
 impl Error for ParseTowerSelectorError {}
 
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum TowerSelector {
     A,
     B,
@@ -118,6 +116,17 @@ impl TowerSelectorSet {
     }
 }
 
+#[derive(Debug)]
+struct EmptyTowerError(TowerSelector);
+
+impl fmt::Display for EmptyTowerError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "tower {} is empty", self.0)
+    }
+}
+
+impl Error for EmptyTowerError {}
+
 #[derive(Debug, Eq, PartialEq)]
 struct TowerSet {
     a: Tower,
@@ -134,9 +143,14 @@ impl TowerSet {
         }
     }
 
-    fn move_disk(&mut self, source: TowerSelector, target: TowerSelector) {
-        let disk = self[source].must_pop();
+    fn move_disk(
+        &mut self,
+        source: TowerSelector,
+        target: TowerSelector,
+    ) -> Result<(), EmptyTowerError> {
+        let disk = self[source].pop().ok_or(EmptyTowerError(source))?;
         self[target].push(disk);
+        Ok(())
     }
 }
 
@@ -257,11 +271,15 @@ impl IndexMut<TowerSelector> for TowerSet {
 /// passing them all as separate function arguments as the book does.  What the
 /// book calls `numberOfDisks`, we call `height`.  These are purely stylistic
 /// choices.
-fn solve(towers: TowerSet, height: usize, selectors: TowerSelectorSet) -> TowerSet {
+fn solve(
+    towers: TowerSet,
+    height: usize,
+    selectors: TowerSelectorSet,
+) -> Result<TowerSet, EmptyTowerError> {
     if height == 0 {
         // BASE CASE: No disks to move.
         println!("\n{towers}");
-        return towers;
+        return Ok(towers);
     }
     // RECURSIVE CASE
     let TowerSelectorSet {
@@ -273,13 +291,21 @@ fn solve(towers: TowerSet, height: usize, selectors: TowerSelectorSet) -> TowerS
         towers,
         height - 1,
         TowerSelectorSet::from_parts(source, buffer, target),
-    );
-    towers.move_disk(source, target);
+    )?;
+    towers.move_disk(source, target)?;
     solve(
         towers,
         height - 1,
         TowerSelectorSet::from_parts(buffer, target, source),
     )
+}
+
+fn try_move_command(
+    towers: &mut TowerSet,
+    source: &str,
+    target: &str,
+) -> Result<(), Box<dyn Error>> {
+    Ok(towers.move_disk(source.parse()?, target.parse()?)?)
 }
 
 fn interact(mut towers: TowerSet) -> Result<TowerSet, Box<dyn Error>> {
@@ -291,15 +317,26 @@ fn interact(mut towers: TowerSet) -> Result<TowerSet, Box<dyn Error>> {
             return Ok(towers);  // End of input.
         };
         let line = line?.to_uppercase();
+        let line = line.trim();
         if line.starts_with('Q') {
             return Ok(towers);
         }
-        if line.len() < 2 {
-            // The book crashes on empty lines, and silently ignores bad
-            // commands.  We fix the crash, but otherwise behave likewise.
-            continue;
+        match line.len() {
+            0 => {
+                // Ignore empty line.
+            }
+            1 if line.starts_with('Q') => {
+                return Ok(towers);
+            }
+            2 => {
+                if let Err(err) = try_move_command(&mut towers, &line[..1], &line[1..2]) {
+                    eprintln!("warning: {err}");
+                }
+            }
+            _ => {
+                eprintln!("warning: bad command");
+            }
         }
-        towers.move_disk(line[..1].parse()?, line[1..2].parse()?);
     }
 }
 
@@ -327,7 +364,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if std::env::args().any(|arg| &arg == "-i" || &arg == "--interactive") {
         interact(towers)?;
     } else {
-        solve(towers, TOTAL_DISKS, TowerSelectorSet::new());
+        solve(towers, TOTAL_DISKS, TowerSelectorSet::new())?;
     }
     Ok(())
 }
