@@ -1,3 +1,19 @@
+/// While this Tower of Hanoi solver here is modeled on the one from Chapter 3
+/// of The Recursive Book of Recursion, it does not mimic the structure of the
+/// book's sample code as closely as earlier exercises in this repository.
+/// While a shorter version of this solver is certainly possible--for example,
+/// by using numbers and stacks to represent disks and towers directly, rather
+/// than wrapping them in bespoke Disk and Tower types--such an implementation
+/// would not be idiomatic Rust.
+///
+/// Tiny programs like those featured earlier in the book are so simple that
+/// good structure and conventions are not critical to their clarity or
+/// maintainability.  The Tower of Hanoi exercise, however, seems complex
+/// enough to merit a slightly more disciplined approach, which anyway is a
+/// better fit for Rust.  Even in Python and JavaScript, the reader may enjoy
+/// replacing the book's use of global variables with function arguments and
+/// returns values, and encapsulating the book's raw numbers, strings, and
+/// arrays with object-oriented classes akin to the Rust types defined here.
 use std::fmt;
 use std::ops::{Index, IndexMut};
 
