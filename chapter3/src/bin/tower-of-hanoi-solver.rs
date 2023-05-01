@@ -291,7 +291,7 @@ fn interact(mut towers: TowerSet) -> Result<TowerSet, Box<dyn Error>> {
             return Ok(towers);  // End of input.
         };
         let line = line?.to_uppercase();
-        if line.starts_with("Q") {
+        if line.starts_with('Q') {
             return Ok(towers);
         }
         if line.len() < 2 {
@@ -325,8 +325,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     const TOTAL_DISKS: usize = 6;
     let towers = TowerSet::with_disks(TOTAL_DISKS);
     if std::env::args()
-        .find(|arg| arg == "-i" || arg == "--interactive")
-        .is_some()
+        .any(|arg| &arg == "-i" || &arg == "--interactive")
     {
         interact(towers)?;
     } else {
