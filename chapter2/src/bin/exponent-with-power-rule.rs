@@ -1,4 +1,4 @@
-/// Exponentiation in log(N) time without recursion.
+//! Exponentiation in log(N) time without recursion.
 
 enum Op {
     Multiply,

@@ -1,7 +1,7 @@
-// Note that returning an in-band sentinel value like -1 is not idiomatic Rust.
-// Rust strings provide a
-// [find](https://doc.rust-lang.org/std/primitive.str.html#method.find) method
-// returning an `Option<usize>`.
+/// Note that returning an in-band sentinel value like -1 is not idiomatic
+/// Rust. Rust strings provide a
+/// [find](https://doc.rust-lang.org/std/primitive.str.html#method.find) method
+/// returning an `Option<usize>`.
 fn find_substring_iterative(needle: &str, haystack: &str) -> isize {
     for i in 0..(haystack.len() - needle.len()) {
         if &haystack[i..(i + needle.len())] == needle {

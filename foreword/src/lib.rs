@@ -1,5 +1,5 @@
-/// First N Fibonacci numbers using a Y combinator. Inspired by the Python
-/// snippet in the foreword to The Recursive Book of Recursion.
+//! First N Fibonacci numbers using a Y combinator. Inspired by the Python
+//! snippet in the foreword to The Recursive Book of Recursion.
 use std::rc::Rc;
 
 /// A Y combinator, copied from the Rust Playground at
