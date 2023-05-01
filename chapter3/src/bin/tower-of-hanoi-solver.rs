@@ -278,7 +278,16 @@ fn solve(
 ) -> Result<TowerSet, EmptyTowerError> {
     if height == 0 {
         // BASE CASE: No disks to move.
-        println!("\n{towers}");
+        if std::env::args().any(|arg| &arg == "-a" || &arg == "--animated") {
+            // Print ANSI escape codes to clear the terminal before printing
+            // the tower.  Of course, this works only in terminals that
+            // understand these sequences.  See also:
+            // https://stackoverflow.com/a/37778152/3116635
+            println!("\x1b[2J\x1b[H{towers}");
+            std::thread::sleep(std::time::Duration::from_millis(500));
+        } else {
+            println!("\n{towers}");
+        }
         return Ok(towers);
     }
     // RECURSIVE CASE
