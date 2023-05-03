@@ -14,10 +14,31 @@
 //! replacing the book's use of global variables with function arguments and
 //! returns values, and encapsulating the book's raw numbers, strings, and
 //! arrays with object-oriented classes akin to the Rust types defined here.
+
 use std::error::Error;
 use std::ops::{Index, IndexMut};
 use std::str::FromStr;
+use std::thread::sleep;
+use std::time::Duration;
 use std::{fmt, io};
+
+mod flags {
+    fn any_arg(short: &str, long: &str) -> bool {
+        std::env::args().any(|arg| arg == short || arg == long)
+    }
+
+    pub fn animate() -> bool {
+        any_arg("-a", "--animate")
+    }
+
+    pub fn help() -> bool {
+        any_arg("-h", "--help")
+    }
+
+    pub fn interact() -> bool {
+        any_arg("-i", "--interact")
+    }
+}
 
 #[derive(Debug, Eq, PartialEq)]
 struct Disk {
@@ -278,13 +299,13 @@ fn solve(
 ) -> Result<TowerSet, EmptyTowerError> {
     if height == 0 {
         // BASE CASE: No disks to move.
-        if std::env::args().any(|arg| &arg == "-a" || &arg == "--animated") {
+        if flags::animate() {
             // Print ANSI escape codes to clear the terminal before printing
             // the tower.  Of course, this works only in terminals that
             // understand these sequences.  See also:
             // https://stackoverflow.com/a/37778152/3116635
             println!("\x1b[2J\x1b[H{towers}");
-            std::thread::sleep(std::time::Duration::from_millis(500));
+            sleep(Duration::from_millis(500));
         } else {
             println!("\n{towers}");
         }
@@ -379,9 +400,9 @@ mod test {
 fn main() -> Result<(), Box<dyn Error>> {
     const TOTAL_DISKS: usize = 6;
     let towers = TowerSet::with_disks(TOTAL_DISKS);
-    if std::env::args().any(|arg| &arg == "-h" || &arg == "--help") {
+    if flags::help() {
         print_help();
-    } else if std::env::args().any(|arg| &arg == "-i" || &arg == "--interactive") {
+    } else if flags::interact() {
         interact(towers)?;
     } else {
         solve(towers, TOTAL_DISKS, TowerSelectorSet::new())?;
