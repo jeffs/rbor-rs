@@ -116,7 +116,7 @@ impl TowerSelectorSet {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 struct EmptyTowerError(TowerSelector);
 
 impl fmt::Display for EmptyTowerError {
@@ -356,11 +356,11 @@ mod test {
     #[test]
     fn test_solve() {
         for n in 0..10 {
-            let want = TowerSet {
+            let want = Ok(TowerSet {
                 a: Tower::default(),
                 b: Tower::with_disks(n),
                 c: Tower::default(),
-            };
+            });
             let got = solve(TowerSet::with_disks(n), n, TowerSelectorSet::new());
             assert_eq!(got, want);
         }
