@@ -349,6 +349,15 @@ fn interact(mut towers: TowerSet) -> Result<TowerSet, Box<dyn Error>> {
     }
 }
 
+fn print_help() {
+    println!("Usage:\n");
+    println!("    tower=of-hanoi-solver [flag]");
+    println!("Flags:\n");
+    println!("    -a|--animate          animate solver output");
+    println!("    -h|--help             show this message");
+    println!("    -i|--interactive      prompt the user for moves");
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -370,7 +379,9 @@ mod test {
 fn main() -> Result<(), Box<dyn Error>> {
     const TOTAL_DISKS: usize = 6;
     let towers = TowerSet::with_disks(TOTAL_DISKS);
-    if std::env::args().any(|arg| &arg == "-i" || &arg == "--interactive") {
+    if std::env::args().any(|arg| &arg == "-h" || &arg == "--help") {
+        print_help();
+    } else if std::env::args().any(|arg| &arg == "-i" || &arg == "--interactive") {
         interact(towers)?;
     } else {
         solve(towers, TOTAL_DISKS, TowerSelectorSet::new())?;
